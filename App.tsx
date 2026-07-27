@@ -1,25 +1,29 @@
 import React, { useState, useRef } from 'react';
-import { 
-  Printer, 
-  Upload, 
-  X, 
-  Sun, 
-  Moon, 
-  Edit3, 
-  Check, 
-  Copy, 
-  ExternalLink, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Linkedin, 
-  Globe, 
-  Eye, 
-  EyeOff, 
-  Camera
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import {
+  Printer,
+  Upload,
+  X,
+  Sun,
+  Moon,
+  Edit3,
+  Check,
+  Copy,
+  ExternalLink,
+  Mail,
+  Phone,
+  MapPin,
+  Link2,
+  Globe,
+  Eye,
+  EyeOff,
+  Sparkles,
+  Camera,
+  Loader2
 } from 'lucide-react';
 
-interface ExperienceItem {
+interface Experience {
   role: string;
   company: string;
   period: string;
@@ -27,20 +31,56 @@ interface ExperienceItem {
   points: string[];
 }
 
-interface BrandItem {
+interface Brand {
   name: string;
   desc: string;
 }
 
-export default function App() {
-  const [darkMode, setDarkMode] = useState<boolean>(false);
-  const [editable, setEditable] = useState<boolean>(false);
-  const [showPhoto, setShowPhoto] = useState<boolean>(true);
-  const [headshot, setHeadshot] = useState<string | null>(null);
-  const [copied, setCopied] = useState<boolean>(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+interface Language {
+  name: string;
+  level: string;
+}
 
-  const [content, setContent] = useState({
+interface CVContent {
+  name: string;
+  title: string;
+  location: string;
+  email: string;
+  phone: string;
+  linkedin: string;
+  linkedinUrl: string;
+  portfolio: string;
+  portfolioUrl: string;
+  profile: string;
+  skills: {
+    brandStrategy: string[];
+    visualIdentity: string[];
+    motionProduction: string[];
+    tools: string[];
+  };
+  experience: Experience[];
+  brandsWorkedWith: Brand[];
+  education: {
+    degree: string;
+    institution: string;
+    year: string;
+  };
+  certifications: string[];
+  languages: Language[];
+}
+
+export default function App() {
+  const [darkMode, setDarkMode] = useState(false);
+  const [editable, setEditable] = useState(false);
+  const [showPhoto, setShowPhoto] = useState(true);
+  const [headshot, setHeadshot] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cvRef = useRef<HTMLDivElement>(null);
+
+  // Default content structure
+  const [content, setContent] = useState<CVContent>({
     name: "PAUL OYATOWO",
     title: "CREATIVE STRATEGIST & BRAND ARCHITECT",
     location: "Ibadan, Oyo State, Nigeria",
@@ -50,27 +90,27 @@ export default function App() {
     linkedinUrl: "https://linkedin.com/in/pauloyatowo",
     portfolio: "pennio-design.github.io/portfolio.pdf",
     portfolioUrl: "https://pennio-design.github.io/portfolio.pdf",
-    
-    profile: "Brand Architect and creative strategist building structured, meaning-first brand systems for fintech, technology, and lifestyle companies. Translates strategic positioning into visual languages and motion touchpoints. Proven track record across internal creative teams, remote brand initiatives, and independent brand architecture engagements for vision-driven founders.",
-    
+
+    profile: "Brand Architect and creative strategist building structured, meaning-first brand systems for technology, fintech, and lifestyle companies. Translates core strategic positioning into comprehensive visual and motion touchpoints. Proven track record across internal teams, remote brand initiatives, and independent brand architecture for African founders.",
+
     skills: {
       brandStrategy: [
         "Brand Systems Architecture",
         "Brand Guidelines & Documentation",
         "Creative Direction",
-        "Positioning Strategy"
+        "Positioning & Messaging"
       ],
       visualIdentity: [
-        "Identity Systems",
+        "Identity Design Systems",
         "Typography Hierarchy",
         "Color System Architecture",
-        "Visual Language Systems"
+        "Visual Language Design"
       ],
       motionProduction: [
         "Motion Graphics",
         "Animated Content Systems",
         "Campaign Direction",
-        "3D Design (Blender)"
+        "3D Spatial Design (Blender)"
       ],
       tools: [
         "Figma",
@@ -83,14 +123,14 @@ export default function App() {
 
     experience: [
       {
-        role: "Brand & Motion Strategist",
+        role: "Graphic & Motion Designer",
         company: "Infinitswap",
         period: "Feb 2026 – Present",
         type: "Full-time",
         points: [
-          "Produce motion graphics and animated content aligned directly to the brand visual identity system from concept through final delivery.",
-          "Direct content production cycles, including the primary product launch campaign and a modular template system for scaled output.",
-          "Design multi-format social campaign collateral and carousel series, maintaining pixel-accurate consistency against master brand presentation guidelines."
+          "Produce motion graphics and animated editorial content mapped directly to the brand visual system from concept through execution.",
+          "Direct content development cycles, including the primary product launch campaign and a modular template system for scaled production.",
+          "Design multi-format social campaign assets and carousels, maintaining pixel-accurate alignment against master brand guidelines."
         ]
       },
       {
@@ -99,42 +139,42 @@ export default function App() {
         period: "Jan 2025 – Feb 2026",
         type: "Remote",
         points: [
-          "Led web and brand design for a service booking platform, translating business targets into a unified and scalable design system.",
-          "Authored comprehensive brand guidelines governing layout structure, color theory, and typographic hierarchy across digital touchpoints.",
-          "Redesigned campaign communication systems for targeted verticals, shifting to bold typography-first layouts that heightened message clarity."
+          "Led web and brand design for a service booking platform, transforming key commercial objectives into a scalable design system.",
+          "Authored master brand guidelines governing layout structure, color theory, and typographic hierarchy across digital and marketing assets.",
+          "Restructured campaign systems for targeted service verticals, implementing bold typography-first layouts that increased visual clarity."
         ]
       },
       {
         role: "Founder & Brand Architect",
         company: "PENNIO",
         period: "Ongoing",
-        type: "Studio",
+        type: "Independent Studio",
         points: [
-          "Founded PENNIO as a brand architecture studio for African founders, structured across product, advisory engagements, and original content.",
-          "Developed a meaning-first system methodology that opens every engagement by defining brand essence and cultural positioning.",
-          "Produce brand documentation, visual identity systems, and multi-slide carousel frameworks that carry a client brand system across platforms."
+          "Built PENNIO as a dedicated brand architecture studio serving vision-driven African founders across product, client advisory, and original content.",
+          "Created a meaning-first system methodology that grounds every brand build in cultural position and core foundational identity.",
+          "Produce comprehensive brand documentation, visual identity systems, and multi-slide carousel frameworks that maintain identity cohesion across digital platforms."
         ]
       }
-    ] as ExperienceItem[],
+    ],
 
     brandsWorkedWith: [
       {
         name: "Lumière",
-        desc: "Full brand identity system for an artisanal resin craft brand."
+        desc: "Full brand architecture and visual identity system for an artisanal resin design studio."
       },
       {
         name: "Crux",
-        desc: "Brand guidelines and positioning for a fintech intelligence platform."
+        desc: "Brand positioning and system guidelines for an investment intelligence platform."
       },
       {
         name: "Axion",
-        desc: "Brand identity, color system, and typographic structure for a software solutions company."
+        desc: "Visual identity, color architecture, and typographic hierarchy for a software solutions firm."
       },
       {
         name: "Jo26 Events",
-        desc: "Brand identity system and social campaign collateral for a boutique event planning studio."
+        desc: "Brand identity system and campaign collateral for a boutique event planning company."
       }
-    ] as BrandItem[],
+    ],
 
     education: {
       degree: "B.Sc. Ed. Computer Science",
@@ -145,8 +185,8 @@ export default function App() {
     certifications: [
       "Google Data Analytics (Coursera)",
       "Full-Funnel Advertising (Domestika)",
-      "Web Development (Sololearn)",
-      "Soft Skills Certification (Jobberman)"
+      "Web Development: C++, HTML, PHP (Sololearn)",
+      "Soft Skills (Jobberman)"
     ],
 
     languages: [
@@ -174,12 +214,80 @@ export default function App() {
     setHeadshot(null);
   };
 
-  const handlePrint = () => {
-    window.print();
+  // Replaces window.print(). Renders the CV to canvas and places it on a
+  // single A4 page at exact dimensions, so mobile print dialogs (which
+  // ignore custom paper sizes and split content across two pages) are
+  // bypassed entirely.
+  const handleExportPDF = async () => {
+    const element = cvRef.current;
+    if (!element) return;
+
+    setExporting(true);
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: darkMode ? '#18181b' : '#ffffff',
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4'
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Fit the full canvas onto one page, scaling down by whichever
+      // dimension is the tighter constraint, then center it.
+      const widthRatio = pageWidth / canvas.width;
+      const heightRatio = pageHeight / canvas.height;
+      const ratio = Math.min(widthRatio, heightRatio);
+
+      const finalWidth = canvas.width * ratio;
+      const finalHeight = canvas.height * ratio;
+      const offsetX = (pageWidth - finalWidth) / 2;
+      const offsetY = (pageHeight - finalHeight) / 2;
+
+      pdf.addImage(imgData, 'PNG', offsetX, offsetY, finalWidth, finalHeight);
+
+      // The image above is a flattened raster, so the original <a> tags
+      // aren't clickable in the PDF on their own. Overlay invisible link
+      // annotations at the same positions the elements occupy on screen.
+      const containerRect = element.getBoundingClientRect();
+      const cssToPdfScale = 2 * ratio; // html2canvas scale (2) then canvas->pdf ratio
+      const linkEls = element.querySelectorAll('a[href]');
+
+      linkEls.forEach((el) => {
+        const linkRect = el.getBoundingClientRect();
+        const x = offsetX + (linkRect.left - containerRect.left) * cssToPdfScale;
+        const y = offsetY + (linkRect.top - containerRect.top) * cssToPdfScale;
+        const w = linkRect.width * cssToPdfScale;
+        const h = linkRect.height * cssToPdfScale;
+        const href = el.getAttribute('href');
+        if (href) {
+          pdf.link(x, y, w, h, { url: href });
+        }
+      });
+
+      pdf.save('Paul-Oyatowo-CV.pdf');
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert('Export failed. Please try again.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const copyAsPlainText = () => {
-    const text = `${content.name}
+    const text = `
+${content.name}
 ${content.title}
 ${content.location} | ${content.email} | ${content.phone}
 Portfolio: ${content.portfolio}
@@ -189,12 +297,12 @@ ${content.profile}
 
 EXPERIENCE
 ${content.experience.map(exp => `
-${exp.role} - ${exp.company} (${exp.period})
-${exp.points.map(p => `* ${p}`).join('\n')}
+${exp.role} at ${exp.company} (${exp.period})
+${exp.points.map(p => `• ${p}`).join('\n')}
 `).join('\n')}
 
 BRANDS WORKED WITH
-${content.brandsWorkedWith.map(b => `* ${b.name}: ${b.desc}`).join('\n')}
+${content.brandsWorkedWith.map(b => `• ${b.name}: ${b.desc}`).join('\n')}
 
 CORE SKILLS
 Strategy: ${content.skills.brandStrategy.join(', ')}
@@ -203,7 +311,7 @@ Motion: ${content.skills.motionProduction.join(', ')}
 Tools: ${content.skills.tools.join(', ')}
 
 EDUCATION
-${content.education.degree} - ${content.institution} (${content.education.year})
+${content.education.degree} – ${content.education.institution} (${content.education.year})
 `;
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -212,22 +320,22 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-200 ${darkMode ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-100 text-zinc-900'}`}>
-      
-      {/* Top Controls Bar */}
-      <header className="print:hidden sticky top-0 z-50 border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 py-3">
-        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
+
+      {/* Control Bar */}
+      <header className="sticky top-0 z-50 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-3">
+        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs uppercase tracking-widest px-2.5 py-1 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 rounded-sm font-semibold">
-              PENNIO / System
+            <span className="font-mono text-xs uppercase tracking-widest px-2.5 py-1 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 rounded">
+              PENNIO / CV System
             </span>
-            <span className="text-xs font-mono text-zinc-500 hidden sm:inline">Brand Architect Curriculum Vitae</span>
+            <span className="text-xs text-zinc-500 hidden sm:inline">Swiss Minimalist Format</span>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setShowPhoto(!showPhoto)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-sm border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
-              title="Toggle Photo Slot"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+              title="Toggle Photo visibility"
             >
               {showPhoto ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
               {showPhoto ? "Hide Photo" : "Show Photo"}
@@ -235,93 +343,101 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
 
             <button
               onClick={() => setEditable(!editable)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-sm border transition ${
-                editable 
-                  ? 'bg-amber-500 text-white border-amber-600 font-semibold' 
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition ${
+                editable
+                  ? 'bg-amber-500 text-white border-amber-600'
                   : 'border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800'
               }`}
             >
               <Edit3 className="w-3.5 h-3.5" />
-              {editable ? "Editing Mode Active" : "Inline Edit"}
+              {editable ? "Done Editing" : "Edit Mode"}
             </button>
 
             <button
               onClick={copyAsPlainText}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-sm border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-              {copied ? "Copied" : "Copy Plain Text"}
+              {copied ? "Copied" : "Copy Text"}
             </button>
 
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-1.5 rounded-sm border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+              className="p-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
               title="Toggle Theme"
             >
               {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-zinc-600" />}
             </button>
 
             <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-sm bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm font-semibold"
+              onClick={handleExportPDF}
+              disabled={exporting}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <Printer className="w-3.5 h-3.5" />
-              Print / Save PDF
+              {exporting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Printer className="w-3.5 h-3.5" />
+              )}
+              {exporting ? "Generating..." : "Export PDF"}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Primary Printable CV Sheet */}
-      <main className="max-w-4xl mx-auto my-0 sm:my-8 p-6 sm:p-12 bg-white dark:bg-zinc-900 border-x border-y sm:rounded-none border-zinc-200 dark:border-zinc-800 transition-colors shadow-xl">
-        
-        {/* Header Block */}
+      {/* Main Resume Canvas — this is what gets captured for export */}
+      <main
+        ref={cvRef}
+        className="max-w-4xl mx-auto my-0 sm:my-8 p-6 sm:p-12 bg-white dark:bg-zinc-900 border-x border-y sm:rounded-none sm:shadow-2xl border-zinc-200 dark:border-zinc-800 transition-colors"
+      >
+
+        {/* Header Section */}
         <header className="border-b border-zinc-200 dark:border-zinc-800 pb-8 mb-8">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-            
-            {/* Identity & Metadata */}
+
+            {/* Left: Name and Title */}
             <div className="flex-1 space-y-2">
-              <h1 
+              <h1
                 contentEditable={editable}
                 suppressContentEditableWarning
                 onBlur={(e) => setContent({...content, name: e.currentTarget.innerText})}
-                className="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-950 dark:text-white uppercase font-sans"
+                className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-950 dark:text-white uppercase font-sans"
               >
                 {content.name}
               </h1>
 
-              <p 
+              <p
                 contentEditable={editable}
                 suppressContentEditableWarning
                 onBlur={(e) => setContent({...content, title: e.currentTarget.innerText})}
-                className="text-xs font-mono tracking-wider text-zinc-600 dark:text-zinc-400 font-bold uppercase"
+                className="text-sm font-mono tracking-wider text-zinc-600 dark:text-zinc-400 font-semibold uppercase"
               >
                 {content.title}
               </p>
 
-              {/* Contact Information Grid */}
+              {/* Contact Metadata Bar */}
               <div className="pt-3 flex flex-wrap items-center gap-y-2 gap-x-4 text-xs font-mono text-zinc-600 dark:text-zinc-400">
                 <span className="flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-zinc-400" />
-                  <span contentEditable={editable} onBlur={(e) => setContent({...content, location: e.currentTarget.innerText})}>{content.location}</span>
+                  <span contentEditable={editable} suppressContentEditableWarning onBlur={(e) => setContent({...content, location: e.currentTarget.innerText})}>{content.location}</span>
                 </span>
 
                 <a href={`mailto:${content.email}`} className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white transition">
                   <Mail className="w-3.5 h-3.5 text-zinc-400" />
-                  <span contentEditable={editable} onBlur={(e) => setContent({...content, email: e.currentTarget.innerText})}>{content.email}</span>
+                  <span contentEditable={editable} suppressContentEditableWarning onBlur={(e) => setContent({...content, email: e.currentTarget.innerText})}>{content.email}</span>
                 </a>
 
-                <span className="flex items-center gap-1">
+                <a href={`tel:${content.phone}`} className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white transition">
                   <Phone className="w-3.5 h-3.5 text-zinc-400" />
-                  <span contentEditable={editable} onBlur={(e) => setContent({...content, phone: e.currentTarget.innerText})}>{content.phone}</span>
-                </span>
+                  <span contentEditable={editable} suppressContentEditableWarning onBlur={(e) => setContent({...content, phone: e.currentTarget.innerText})}>{content.phone}</span>
+                </a>
 
                 <a href={content.linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white transition">
-                  <Linkedin className="w-3.5 h-3.5 text-zinc-400" />
+                  <Link2 className="w-3.5 h-3.5 text-zinc-400" />
                   <span>{content.linkedin}</span>
                 </a>
 
-                <a href={content.portfolioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 font-semibold text-zinc-900 dark:text-zinc-100 hover:underline transition">
+                <a href={content.portfolioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white transition font-medium text-zinc-900 dark:text-zinc-200">
                   <Globe className="w-3.5 h-3.5 text-zinc-500" />
                   <span>{content.portfolio}</span>
                   <ExternalLink className="w-2.5 h-2.5 opacity-60" />
@@ -329,52 +445,51 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
               </div>
             </div>
 
-            {/* Headshot Component Slot */}
+            {/* Right: Headshot Slot */}
             {showPhoto && (
               <div className="relative group flex-shrink-0 self-start md:self-auto">
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleImageUpload} 
-                  accept="image/*" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
                 />
 
-                <div 
+                <div
                   onClick={triggerFileInput}
-                  className={`w-28 h-36 border-2 ${
-                    headshot 
-                      ? 'border-transparent' 
-                      : 'border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50'
+                  className={`w-28 h-36 border-2 border-dashed ${
+                    headshot
+                      ? 'border-transparent'
+                      : 'border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50'
                   } rounded-none flex flex-col items-center justify-center cursor-pointer overflow-hidden transition hover:border-zinc-500 relative`}
                 >
                   {headshot ? (
-                    <img 
-                      src={headshot} 
-                      alt="Paul Oyatowo" 
+                    <img
+                      src={headshot}
+                      alt="Paul Oyatowo Headshot"
                       className="w-full h-full object-cover grayscale contrast-105"
                     />
                   ) : (
                     <div className="text-center p-3 space-y-1">
                       <Camera className="w-6 h-6 mx-auto text-zinc-400 dark:text-zinc-500" />
-                      <p className="text-[10px] font-mono uppercase font-semibold text-zinc-600 dark:text-zinc-400">Headshot Slot</p>
-                      <p className="text-[9px] text-zinc-400 dark:text-zinc-500">Click to upload</p>
+                      <p className="text-[10px] font-mono uppercase text-zinc-500 dark:text-zinc-400">Insert Headshot</p>
+                      <p className="text-[9px] text-zinc-400 dark:text-zinc-600">Click to upload</p>
                     </div>
                   )}
 
-                  {/* Hover Controls for Image Upload */}
                   {headshot && (
-                    <div className="print:hidden absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); triggerFileInput(); }} 
-                        className="p-1.5 bg-white text-black rounded-sm hover:bg-zinc-200"
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); triggerFileInput(); }}
+                        className="p-1 bg-white text-black rounded hover:bg-zinc-200"
                         title="Change Photo"
                       >
                         <Upload className="w-3.5 h-3.5" />
                       </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); removeHeadshot(); }} 
-                        className="p-1.5 bg-red-600 text-white rounded-sm hover:bg-red-700"
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeHeadshot(); }}
+                        className="p-1 bg-red-600 text-white rounded hover:bg-red-700"
                         title="Remove Photo"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -388,22 +503,22 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
           </div>
         </header>
 
-        {/* Swiss Grid Structure */}
+        {/* 2-Column Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          
-          {/* Main Column (8 cols): Profile, Experience, Featured Brands */}
+
+          {/* Main Column (8 cols): Profile, Experience, Brands */}
           <div className="md:col-span-8 space-y-8">
-            
-            {/* Profile Statement */}
+
+            {/* Profile Section */}
             <section className="space-y-2">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-bold">
+              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-semibold">
                 Profile
               </h2>
-              <p 
+              <p
                 contentEditable={editable}
                 suppressContentEditableWarning
                 onBlur={(e) => setContent({...content, profile: e.currentTarget.innerText})}
-                className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 font-sans"
+                className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 font-serif"
               >
                 {content.profile}
               </p>
@@ -411,8 +526,8 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
 
             {/* Experience Section */}
             <section className="space-y-6">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-bold">
-                Experience
+              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-semibold">
+                Professional Experience
               </h2>
 
               <div className="space-y-6">
@@ -420,19 +535,28 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
                   <div key={index} className="space-y-2 border-l-2 border-zinc-200 dark:border-zinc-800 pl-4 py-0.5">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-2">
                       <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                        <span contentEditable={editable} onBlur={(e) => {
-                          const newExp = [...content.experience];
-                          newExp[index].role = e.currentTarget.innerText;
-                          setContent({...content, experience: newExp});
-                        }}>{exp.role}</span>
+                        <span
+                          contentEditable={editable}
+                          suppressContentEditableWarning
+                          onBlur={(e) => {
+                            const newExp = [...content.experience];
+                            newExp[index].role = e.currentTarget.innerText;
+                            setContent({...content, experience: newExp});
+                          }}
+                        >{exp.role}</span>
                         {" "}
-                        <span className="font-normal text-zinc-400">at</span>
+                        <span className="font-normal text-zinc-500">at</span>
                         {" "}
-                        <span className="font-semibold text-zinc-950 dark:text-white" contentEditable={editable} onBlur={(e) => {
-                          const newExp = [...content.experience];
-                          newExp[index].company = e.currentTarget.innerText;
-                          setContent({...content, experience: newExp});
-                        }}>{exp.company}</span>
+                        <span
+                          className="font-semibold text-zinc-950 dark:text-white"
+                          contentEditable={editable}
+                          suppressContentEditableWarning
+                          onBlur={(e) => {
+                            const newExp = [...content.experience];
+                            newExp[index].company = e.currentTarget.innerText;
+                            setContent({...content, experience: newExp});
+                          }}
+                        >{exp.company}</span>
                       </h3>
 
                       <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">
@@ -442,13 +566,17 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
 
                     <ul className="space-y-1.5 pt-1">
                       {exp.points.map((point, pIdx) => (
-                        <li key={pIdx} className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed flex items-start gap-2">
-                          <span className="text-zinc-400 dark:text-zinc-600 mt-0.5 select-none">*</span>
-                          <span contentEditable={editable} onBlur={(e) => {
-                            const newExp = [...content.experience];
-                            newExp[index].points[pIdx] = e.currentTarget.innerText;
-                            setContent({...content, experience: newExp});
-                          }}>
+                        <li key={pIdx} className="text-xs text-zinc-600 dark:text-zinc-300 leading-normal flex items-start gap-2">
+                          <span className="text-zinc-400 dark:text-zinc-600 mt-0.5 select-none">•</span>
+                          <span
+                            contentEditable={editable}
+                            suppressContentEditableWarning
+                            onBlur={(e) => {
+                              const newExp = [...content.experience];
+                              newExp[index].points[pIdx] = e.currentTarget.innerText;
+                              setContent({...content, experience: newExp});
+                            }}
+                          >
                             {point}
                           </span>
                         </li>
@@ -461,17 +589,17 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
 
             {/* Brands Worked With */}
             <section className="space-y-3">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-bold">
-                Brands Worked With
+              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-semibold">
+                Brands & Featured Engagements
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {content.brandsWorkedWith.map((brand, bIdx) => (
-                  <div key={bIdx} className="p-3 border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/20">
+                  <div key={bIdx} className="p-3 border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30">
                     <h3 className="text-xs font-bold font-mono text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
                       {brand.name}
                     </h3>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-normal">
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-snug">
                       {brand.desc}
                     </p>
                   </div>
@@ -481,12 +609,12 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
 
           </div>
 
-          {/* Sidebar Column (4 cols): Core Skills, Education, Certifications */}
+          {/* Sidebar Column (4 cols): Core Skills, Education, Certs */}
           <div className="md:col-span-4 space-y-8 border-t md:border-t-0 md:border-l border-zinc-200 dark:border-zinc-800 pt-6 md:pt-0 md:pl-6">
-            
-            {/* Core Capabilities */}
+
+            {/* Core Skills */}
             <section className="space-y-4">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-bold">
+              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-semibold">
                 Core Capabilities
               </h2>
 
@@ -547,7 +675,7 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
 
             {/* Education Section */}
             <section className="space-y-2">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-bold">
+              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-semibold">
                 Education
               </h2>
               <div>
@@ -555,14 +683,14 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
                   {content.education.degree}
                 </p>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                  {content.institution}, {content.education.year}
+                  {content.education.institution}, {content.education.year}
                 </p>
               </div>
             </section>
 
             {/* Certifications Section */}
             <section className="space-y-2">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-bold">
+              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-semibold">
                 Certifications
               </h2>
               <ul className="space-y-1">
@@ -577,7 +705,7 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
 
             {/* Languages */}
             <section className="space-y-2">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-bold">
+              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-semibold">
                 Languages
               </h2>
               <div className="text-xs font-mono text-zinc-600 dark:text-zinc-400 space-y-1">
@@ -590,10 +718,10 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
               </div>
             </section>
 
-            {/* Studio Branding Marker */}
+            {/* PENNIO Note / Footprint */}
             <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-widest font-semibold">
-                Studio: PENNIO
+              <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                Studio Framework: PENNIO
               </p>
             </div>
 
@@ -603,27 +731,6 @@ ${content.education.degree} - ${content.institution} (${content.education.year})
 
       </main>
 
-      {/* Print-specific style block */}
-      <style>{`
-        @media print {
-          body {
-            background-color: white !important;
-            color: black !important;
-          }
-          main {
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            max-width: 100% !important;
-          }
-          header, button {
-            display: none !important;
-          }
-        }
-      `}</style>
-
     </div>
   );
 }
-
